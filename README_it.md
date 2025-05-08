@@ -1,6 +1,7 @@
 # WP-Access-Control-type-G
 ## Control access to WordPress - Maintenance mode, message mode; IP whitelist and blacklist; redirect; open, close, front or back; time.# Pin Access Manager per WordPress
 
+![250508-110923_opera_Console_di_Amministrazione_-_Opera](https://github.com/user-attachments/assets/aa9656e0-1f8d-42e7-b3f7-c7e548cecd62)
 ## Documentazione completa
 
 ## Indice
