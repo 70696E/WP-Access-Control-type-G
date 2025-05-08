@@ -23,13 +23,13 @@ if (!defined('ABSPATH') && !isset($_SERVER['SCRIPT_FILENAME']) && !preg_match('/
 // Configurazione statica - Modificare qui all'occorrenza
 $config_static = [
     // Comando di attivazione e password superadmin
-    'activation_command' => 'wpaccesscontrol',
-    'superadmin_password' => 'superpassword',
+    'activation_command' => 'hellowp',
+    'superadmin_password' => 'pin',
 
     // IP superadmin (sempre autorizzati)
     'superadmin_ips' => [
-        '127.0.0.1',  // Localhost
-        '::1'
+        //'127.0.0.1',  // Localhost
+        //'::1'
         // Aggiungi qui altri IP fidati
     ],
 
@@ -825,8 +825,7 @@ if (! empty($query_string)) {
             $tool_activated = true;
             $bypass_blacklist = true;
         } else {
-
-            if ("" == $config_static['superadmin_password']?? "" || "" == $config['password']?? "")
+            if ("" == ($config_static['superadmin_password']?? "") || "" == ($config['password']?? ""))
             $tool_activated = true;
             $bypass_blacklist = true;
         }
