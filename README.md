@@ -1,459 +1,482 @@
-# WP-Access-Control-type-G
+# WP-Access-Control-type-G (aka Pin Access Manager)
 Control access to WordPress - Maintenance mode, message mode; IP whitelist and blacklist; redirect; open, close, front or back; time.
-# Pin Access Manager per WordPress
-## Documentazione completa
+![250508-110923_opera_Console_di_Amministrazione_-_Opera](https://github.com/user-attachments/assets/9363da24-0d7b-451e-9c78-bee6839e112e)
 
-## Indice
-1. [Introduzione e scopo](#introduzione-e-scopo)
-2. [Installazione](#installazione)
-3. [Accesso e autenticazione](#accesso-e-autenticazione)
-4. [Funzionalità principali](#funzionalità-principali)
-5. [Modalità di accesso](#modalità-di-accesso)
-6. [Comandi disponibili](#comandi-disponibili)
-7. [Interfaccia console](#interfaccia-console)
-8. [Gestione degli IP](#gestione-degli-ip)
-9. [Gestione dei pattern URL](#gestione-dei-pattern-url)
-10. [Funzionalità avanzate](#funzionalità-avanzate)
-11. [Struttura del codice](#struttura-del-codice)
-12. [Come aggiungere nuovi comandi](#come-aggiungere-nuovi-comandi)
-13. [Personalizzazione](#personalizzazione)
-14. [Risoluzione problemi](#risoluzione-problemi)
-15. [Considerazioni sulla sicurezza](#considerazioni-sulla-sicurezza)
+# Pin Access Manager for WordPress
+## Complete Documentation
 
-## Introduzione e scopo
+## Table of Contents
+1. [Introduction and Purpose](#introduction-and-purpose)
+2. [Installation](#installation)
+3. [Access and Authentication](#access-and-authentication)
+4. [Main Features](#main-features)
+5. [Access Modes](#access-modes)
+6. [Available Commands](#available-commands)
+7. [Console Interface](#console-interface)
+8. [IP Management](#ip-management)
+9. [URL Pattern Management](#url-pattern-management)
+10. [Advanced Features](#advanced-features)
+11. [Code Structure](#code-structure)
+12. [How to Add New Commands](#how-to-add-new-commands)
+13. [Customization](#customization)
+14. [Troubleshooting](#troubleshooting)
+15. [Security Considerations](#security-considerations)
 
-Pin Access Manager è uno strumento di gestione degli accessi per WordPress che funziona come un "gatekeeper" posizionato davanti al sito. Con il minimo sforzo, consente di:
+## Introduction and Purpose
 
-- Mettere rapidamente il sito in modalità manutenzione
-- Bloccare completamente l'accesso al sito
-- Controllare l'accesso separatamente per frontend e backend
-- Mostrare messaggi personalizzati ai visitatori
-- Reindirizzare a URL specifici
-- Gestire whitelist e blacklist di indirizzi IP
-- Controllare gli accessi tramite pattern URL
+Pin Access Manager is an access management tool for WordPress that works as a "gatekeeper" positioned in front of your site. With minimal effort, it allows you to:
 
-Lo strumento è progettato per essere:
-- Leggero e veloce
-- Facilmente controllabile tramite parametri URL
-- Accessibile tramite un'interfaccia a console
-- Modulare e facilmente estendibile
+- Quickly put the site in maintenance mode
+- Completely block access to the site
+- Control access separately for frontend and backend
+- Display custom messages to visitors
+- Redirect to specific URLs
+- Manage whitelists and blacklists of IP addresses
+- Control access via URL patterns
 
-## Installazione
+The tool is designed to be:
+- Lightweight and fast
+- Easily controllable via URL parameters
+- Accessible through a console interface
+- Modular and easily extensible
 
-1. **Backup**: Crea sempre un backup del tuo sito WordPress prima di procedere
-2. **Rinomina l'index.php originale**:
+## Installation
+
+1. **Backup**: Always create a backup of your WordPress site before proceeding
+2. **Rename the original index.php**:
    ```bash
    mv index.php wp-index.php
    ```
-3. **Carica il nuovo index.php**: Carica il file Pin Access Manager come nuovo `index.php`
-4. **Configura le opzioni di sicurezza**:
-   - Modifica la `superadmin_password` nell'array `$config_static`
-   - Aggiungi i tuoi IP fidati all'array `$superadmin_ips`
+3. **Upload the new index.php**: Upload the Pin Access Manager file as the new `index.php`
+4. **Configure security options**:
+   - Modify the `superadmin_password` in the `$config_static` array
+   - Add your trusted IPs to the `$superadmin_ips` array
 
-## Accesso e autenticazione
+## Access and Authentication
 
-### Metodi di accesso
+### Access Methods
 
-Esistono tre modi per autenticarsi e utilizzare Pin Access Manager:
+There are three ways to authenticate and use Pin Access Manager:
 
-1. **IP superadmin**:
-   - Gli IP elencati in `$superadmin_ips` hanno sempre accesso completo
-   - Ricevono automaticamente privilegi speciali
+1. **Superadmin IP**:
+   - IPs listed in `$superadmin_ips` always have full access
+   - They automatically receive special privileges
 
-2. **Password statica**:
-   - Accesso con `?managewp=superadmin_password`
-   - Password definita in `$config_static['superadmin_password']`
-   - Sempre valida (di emergenza)
+2. **Static Password**:
+   - Access with `?managewp=superadmin_password`
+   - Password defined in `$config_static['superadmin_password']`
+   - Always valid (emergency access)
 
-3. **Password dinamica**:
-   - Accesso con `?managewp=password_dinamica`
-   - Configurabile tramite comando `setpassword`
-   - Salvata nel file di configurazione
+3. **Dynamic Password**:
+   - Access with `?managewp=dynamic_password`
+   - Configurable via the `setpassword` command
+   - Saved in the configuration file
 
-### Stati utente
+### User States
 
-- **Superadmin**: IP elencati nell'array statico (accesso completo)
-- **Operatore**: Utente autenticato con password valida (timeout configurabile)
-- **Visitatore**: Utente normale soggetto alle regole di accesso
+- **Superadmin**: IPs listed in the static array (full access)
+- **Operator**: User authenticated with a valid password (configurable timeout)
+- **Visitor**: Normal user subject to access rules
 
-## Funzionalità principali
+## Main Features
 
-### Controllo stato del sito
+### Site Status Control
 
-- **Modalità aperta**: Accesso completo al sito
-- **Modalità chiusa**: Nessun accesso al sito
-- **Manutenzione**: Pagina di manutenzione per tutti i visitatori
-- **Messaggio**: Visualizza un messaggio personalizzato
-- **Reindirizzamento**: Reindirizza i visitatori a un URL specifico
-- **Accesso parziale**: Possibilità di aprire solo frontend o backend
+- **Open Mode**: Full access to the site
+- **Closed Mode**: No access to the site
+- **Maintenance**: Maintenance page for all visitors
+- **Message**: Displays a custom message
+- **Redirect**: Redirects visitors to a specific URL
+- **Partial Access**: Possibility to open only frontend or backend
 
-### Gestione delle liste IP
+### IP List Management
 
-- **Whitelist**: IP con accesso completo in qualsiasi modalità
-- **Blacklist**: IP sempre bloccati (con opzione di reindirizzamento)
-- **Registrazione visitatori**: Possibilità per i visitatori di registrarsi per essere identificati
+- **Whitelist**: IPs with full access in any mode
+- **Blacklist**: Always blocked IPs (with redirect option)
+- **Visitor Registration**: Possibility for visitors to register to be identified
 
-### Bypass e blocchi URL
+### URL Bypass and Blocks
 
-- **Pattern di bypass**: URL che bypassano le restrizioni di accesso
-- **Pattern di blocco**: URL sempre bloccati
-- **Accesso backend**: Gestione specifica per aree admin
+- **Bypass Patterns**: URLs that bypass access restrictions
+- **Block Patterns**: Always blocked URLs
+- **Backend Access**: Specific management for admin areas
 
-### Funzionalità amministrative
+### Administrative Features
 
-- **Backup e ripristino**: Salvataggio e importazione configurazioni
-- **Logging**: Registrazione eventi con opzione di attivazione/disattivazione
-- **Reset**: Ripristino configurazione predefinita
+- **Backup and Restore**: Save and import configurations
+- **Logging**: Event recording with enable/disable option
+- **Reset**: Restore default configuration
 
-## Modalità di accesso
+## Access Modes
 
-### Modalità standard
+### Standard Modes
 
-- **open**: Accesso completo al sito (predefinito)
-- **closed**: Sito completamente chiuso, mostra pagina di "Sito non disponibile"
-- **maintenance**: Sito in manutenzione, mostra pagina di "Sito in manutenzione"
-- **message**: Mostra un messaggio personalizzato
-- **redirect**: Reindirizza a un URL specifico
+- **open**: Full site access (default)
+- **closed**: Site completely closed, shows "Site unavailable" page
+- **maintenance**: Site under maintenance, shows "Site under maintenance" page
+- **message**: Shows a custom message
+- **redirect**: Redirects to a specific URL
 
-### Modalità specializzate
+### Specialized Modes
 
-- **openfront**: Solo il frontend è accessibile, il backend è bloccato
-- **openback**: Solo il backend è accessibile, il frontend è bloccato
+- **openfront**: Only frontend is accessible, backend is blocked
+- **openback**: Only backend is accessible, frontend is blocked
 
-### Impostazione durata
+### Duration Setting
 
-Tutte le modalità possono essere impostate con una durata specifica:
-- Senza durata: `?managewp&closed` - permanente
-- Con durata: `?managewp&closed=1h` - temporanea (1 ora)
+All modes can be set with a specific duration:
+- Without duration: `?managewp&closed` - permanent
+- With duration: `?managewp&closed=1h` - temporary (1 hour)
 
-Formati durata supportati:
-- `m`: minuti (es. 30m)
-- `h`: ore (es. 2h)
-- `d`: giorni (es. 1d)
-- `w`: settimane (es. 1w)
+Supported duration formats:
+- `m`: minutes (e.g., 30m)
+- `h`: hours (e.g., 2h)
+- `d`: days (e.g., 1d)
+- `w`: weeks (e.g., 1w)
 
-## Comandi disponibili
+## Available Commands
 
-### Comandi di sistema
-- `help` (alias: `?`, `aiuto`): Mostra la lista dei comandi disponibili
-- `status` (alias: `stato`, `st`): Mostra lo stato attuale del sistema
-- `wp` (alias: `wordpress`, `site`): Carica WordPress conservando la sessione
-- `quit` (alias: `exit`, `esci`): Esce dalla console e termina la sessione
+### System Commands
+- `help` (aliases: `?`, `aiuto`): Shows the list of available commands
+- `status` (aliases: `stato`, `st`): Shows the current system status
+- `wp` (aliases: `wordpress`, `site`): Loads WordPress while maintaining the session
+- `quit` (aliases: `exit`, `esci`): Exits the console and terminates the session
 
-### Modalità sito
-- `open` (alias: `apri`, `aperto`): Imposta il sito in modalità aperta
-- `openfront` (alias: `frontonly`): Apre solo il frontend
-- `openback` (alias: `backonly`): Apre solo il backend
-- `closed` (alias: `chiudi`, `chiuso`): Imposta il sito in modalità chiusa
-- `manut` (alias: `maintenance`, `manutenzione`): Imposta modalità manutenzione
-- `msg` (alias: `message`, `messaggio`): Imposta un messaggio personalizzato
-- `clearmsg` (alias: `nomsg`, `nomessage`): Cancella il messaggio personalizzato
-- `redirect` (alias: `redir`, `url`): Reindirizza a un URL specifico
+### Site Modes
+- `open` (aliases: `apri`, `aperto`): Sets the site to open mode
+- `openfront` (aliases: `frontonly`): Opens only the frontend
+- `openback` (aliases: `backonly`): Opens only the backend
+- `closed` (aliases: `chiudi`, `chiuso`): Sets the site to closed mode
+- `manut` (aliases: `maintenance`, `manutenzione`): Sets maintenance mode
+- `msg` (aliases: `message`, `messaggio`): Sets a custom message
+- `clearmsg` (aliases: `nomsg`, `nomessage`): Clears the custom message
+- `redirect` (aliases: `redir`, `url`): Redirects to a specific URL
 
-### Gestione IP
-- `wladd` (alias: `whitelist`): Aggiungi IP alla whitelist
-- `wlremove` (alias: `unwl`, `nowhitelist`): Rimuovi IP dalla whitelist
-- `bladd` (alias: `blacklist`, `ipblock`): Aggiungi IP alla blacklist
-- `blremove` (alias: `unbl`, `noblacklist`, `ipunblock`): Rimuovi IP dalla blacklist
-- `clearwl` (alias: `wlclear`): Svuota la whitelist
-- `clearbl` (alias: `blclear`): Svuota la blacklist
-- `blredirect` (alias: `blredir`): Imposta URL di redirect per IP in blacklist
+### IP Management
+- `wladd` (aliases: `whitelist`): Adds IP to whitelist
+- `wlremove` (aliases: `unwl`, `nowhitelist`): Removes IP from whitelist
+- `bladd` (aliases: `blacklist`, `ipblock`): Adds IP to blacklist
+- `blremove` (aliases: `unbl`, `noblacklist`, `ipunblock`): Removes IP from blacklist
+- `clearwl` (aliases: `wlclear`): Empties the whitelist
+- `clearbl` (aliases: `blclear`): Empties the blacklist
+- `blredirect` (aliases: `blredir`): Sets redirect URL for blacklisted IPs
 
-### Gestione pattern URL
-- `bypassadd` (alias: `addbypass`): Aggiungi pattern URL da bypassare
-- `bypassremove` (alias: `rmbypass`): Rimuovi pattern URL da bypassare
-- `blockadd` (alias: `addblock`): Aggiungi pattern URL da bloccare
-- `blockremove` (alias: `rmblock`): Rimuovi pattern URL da bloccare
+### URL Pattern Management
+- `bypassadd` (aliases: `addbypass`): Adds URL pattern to bypass
+- `bypassremove` (aliases: `rmbypass`): Removes URL pattern from bypass
+- `blockadd` (aliases: `addblock`): Adds URL pattern to block
+- `blockremove` (aliases: `rmblock`): Removes URL pattern from block
 
-### Gestione operatori e visitatori
-- `clearop` (alias: `opclear`): Rimuovi tutti gli operatori attivi
-- `clearvisitors` (alias: `clearvs`): Cancella la lista dei visitatori registrati
-- `setpassword` (alias: `setpw`, `passwd`): Imposta la password dinamica
-- `register` (alias: `reg`): Registra un visitatore [comando speciale]
+### Operator and Visitor Management
+- `clearop` (aliases: `opclear`): Removes all active operators
+- `clearvisitors` (aliases: `clearvs`): Clears the registered visitors list
+- `setpassword` (aliases: `setpw`, `passwd`): Sets the dynamic password
+- `register` (aliases: `reg`): Registers a visitor [special command]
 
-### Gestione configurazione
-- `backup` (alias: `export`): Esporta la configurazione corrente
-- `restore` (alias: `import`): Importa una configurazione salvata
-- `reset` (alias: `default`): Ripristina la configurazione predefinita
-- `log` (alias: `logging`): Attiva/disattiva logging [on/off]
-- `setautoshow` (alias: `autoshow`, `showempty`): Imposta se mostrare la console quando attivata senza comandi
+### Configuration Management
+- `backup` (aliases: `export`): Exports the current configuration
+- `restore` (aliases: `import`): Imports a saved configuration
+- `reset` (aliases: `default`): Restores the default configuration
+- `log` (aliases: `logging`): Enables/disables logging [on/off]
+- `setautoshow` (aliases: `autoshow`, `showempty`): Sets whether to show the console when activated without commands
 
-## Interfaccia console
+## Console Interface
 
-### Componenti dell'interfaccia
+### Interface Components
 
-- **Header**: Informazioni di stato, IP e timer sessione
-- **Quick links**: Collegamenti rapidi ai comandi principali
-- **Console output**: Area di visualizzazione output comandi e stato
-- **Input area**: Campo per inserire comandi e pulsante di invio
+- **Header**: Status information, IP, and session timer
+- **Quick links**: Quick links to main commands
+- **Console output**: Command output and status display area
+- **Input area**: Field for entering commands and submit button
 
-### Funzionalità JavaScript
+### JavaScript Features
 
-- **Cronologia comandi**: Navigabile con frecce su/giù
-- **IP cliccabili**: Gli indirizzi IP nell'output sono cliccabili per azioni rapide
-- **Timer sessione**: Countdown tempo rimanente per la sessione operatore
-- **Orologio**: Visualizzazione ora corrente
+- **Command history**: Navigable with up/down arrows
+- **Clickable IPs**: IP addresses in the output are clickable for quick actions
+- **Session timer**: Countdown of remaining time for the operator session
+- **Clock**: Display of current time
 
-### Utilizzo delle scorciatoie
+### Using Shortcuts
 
-- **Quick links**: Cliccabili per inserire il comando corrispondente
-- **IP links**: Cliccabili per inserire comandi relativi a quell'IP
-- **Cronologia**: Accessibile con i tasti freccia su/giù
+- **Quick links**: Clickable to enter the corresponding command
+- **IP links**: Clickable to enter commands related to that IP
+- **History**: Accessible with up/down arrow keys
 
-## Gestione degli IP
+## IP Management
 
 ### Whitelist
 
-La whitelist consente accesso completo al sito, indipendentemente dalla modalità configurata:
+The whitelist allows full access to the site, regardless of the configured mode:
 
 ```
-?managewp&wladd=192.168.1.10     # Aggiungi IP specifico
-?managewp&wladd                  # Aggiungi IP corrente
-?managewp&wlremove=192.168.1.10  # Rimuovi IP specifico
-?managewp&clearwl                # Svuota whitelist
+?managewp&wladd=192.168.1.10     # Add specific IP
+?managewp&wladd                  # Add current IP
+?managewp&wlremove=192.168.1.10  # Remove specific IP
+?managewp&clearwl                # Empty whitelist
 ```
 
-Gli IP in whitelist hanno priorità sulla blacklist.
+Whitelisted IPs have priority over the blacklist.
 
 ### Blacklist
 
-La blacklist blocca completamente gli IP, con opzione di reindirizzamento:
+The blacklist completely blocks IPs, with a redirect option:
 
 ```
-?managewp&bladd=192.168.1.20     # Aggiungi IP alla blacklist
-?managewp&bladd                  # Aggiungi IP corrente
-?managewp&blremove=192.168.1.20  # Rimuovi IP dalla blacklist
-?managewp&clearbl                # Svuota blacklist
-?managewp&blredirect=https://example.com  # Imposta URL di reindirizzamento
-?managewp&blredirect=            # Disabilita reindirizzamento
+?managewp&bladd=192.168.1.20     # Add IP to blacklist
+?managewp&bladd                  # Add current IP
+?managewp&blremove=192.168.1.20  # Remove IP from blacklist
+?managewp&clearbl                # Empty blacklist
+?managewp&blredirect=https://example.com  # Set redirect URL
+?managewp&blredirect=            # Disable redirect
 ```
 
-La blacklist ha effetto solo su utenti non-operatori e non-superadmin.
+The blacklist only affects non-operator and non-superadmin users.
 
-### Registrazione visitatori
+### Visitor Registration
 
-I visitatori possono registrarsi senza avere accesso alla console:
-
-```
-?register=NomeUtente
-```
-
-Questo registra l'IP e il nome nel sistema, permettendo agli amministratori di identificare e, se necessario, aggiungere l'IP alla whitelist.
-
-## Gestione dei pattern URL
-
-### Pattern di bypass
-
-I pattern di bypass consentono di specificare URL che dovrebbero sempre essere accessibili, indipendentemente dalla modalità del sito:
+Visitors can register without having access to the console:
 
 ```
-?managewp&bypassadd=/api/        # Bypassa tutti gli URL che contengono "/api/"
-?managewp&bypassadd=/feed.xml    # Bypassa feed.xml
-?managewp&bypassadd=/webhook     # Bypassa webhook
-?managewp&bypassremove=/api/     # Rimuovi pattern di bypass
+?register=UserName
 ```
 
-### Pattern di blocco
+This registers the IP and name in the system, allowing administrators to identify and, if necessary, add the IP to the whitelist.
 
-I pattern di blocco specificano URL che devono sempre essere bloccati:
+## URL Pattern Management
 
-```
-?managewp&blockadd=/wp-content/uploads/private/  # Blocca accesso a cartella privata
-?managewp&blockadd=/riservato    # Blocca accesso a area riservata
-?managewp&blockremove=/riservato # Rimuovi pattern di blocco
-```
+### Bypass Patterns
 
-### Pattern regex
-
-Per pattern più complessi, è possibile utilizzare espressioni regolari:
+Bypass patterns allow you to specify URLs that should always be accessible, regardless of the site mode:
 
 ```
-?managewp&bypassadd=/^\/api\/v[0-9]+\//  # Bypassa URL che iniziano con /api/v seguito da numeri
-?managewp&blockadd=/\.(pdf|docx)$/     # Blocca accesso a file PDF e DOCX
+?managewp&bypassadd=/api/        # Bypass all URLs containing "/api/"
+?managewp&bypassadd=/feed.xml    # Bypass feed.xml
+?managewp&bypassadd=/webhook     # Bypass webhook
+?managewp&bypassremove=/api/     # Remove bypass pattern
 ```
 
-I pattern regex devono essere racchiusi tra slash (`/pattern/`).
+### Block Patterns
 
-## Funzionalità avanzate
-
-### Default e stato temporaneo
-
-Il sistema supporta uno stato predefinito e uno stato temporaneo:
+Block patterns specify URLs that must always be blocked:
 
 ```
-?managewp&open                  # Imposta "open" come stato predefinito
-?managewp&closed=1d             # Imposta "closed" come stato temporaneo per 1 giorno
+?managewp&blockadd=/wp-content/uploads/private/  # Block access to private folder
+?managewp&blockadd=/reserved     # Block access to reserved area
+?managewp&blockremove=/reserved  # Remove block pattern
 ```
 
-Alla scadenza dello stato temporaneo, il sistema tornerà automaticamente allo stato predefinito.
+### Regex Patterns
 
-### Backup e ripristino
-
-Permette di salvare e ripristinare configurazioni complete:
+For more complex patterns, you can use regular expressions:
 
 ```
-?managewp&backup                # Crea un backup della configurazione
-?managewp&restore=pin-access-backup-20240510123045.json  # Ripristina da backup
+?managewp&bypassadd=/^\/api\/v[0-9]+\//  # Bypass URLs starting with /api/v followed by numbers
+?managewp&blockadd=/\.(pdf|docx)$/       # Block access to PDF and DOCX files
 ```
 
-I file di backup vengono salvati nella cartella `wp-content/` con un timestamp nel nome.
+Regex patterns must be enclosed in slashes (`/pattern/`).
+
+## Advanced Features
+
+### Default and Temporary Status
+
+The system supports a default state and a temporary state:
+
+```
+?managewp&open                  # Set "open" as default state
+?managewp&closed=1d             # Set "closed" as temporary state for 1 day
+```
+
+When the temporary state expires, the system will automatically return to the default state.
+
+### Backup and Restore
+
+Allows saving and restoring complete configurations:
+
+```
+?managewp&backup                # Create a configuration backup
+?managewp&restore=pin-access-backup-20240510123045.json  # Restore from backup
+```
+
+Backup files are saved in the `wp-content/` folder with a timestamp in the name.
 
 ### Logging
 
-Il sistema può registrare gli eventi chiave:
+The system can record key events:
 
 ```
-?managewp&log=on                # Attiva logging
-?managewp&log=off               # Disattiva logging
+?managewp&log=on                # Enable logging
+?managewp&log=off               # Disable logging
 ```
 
-Il log è visualizzabile nella console e contiene azioni, IP e timestamp.
+The log is viewable in the console and contains actions, IPs, and timestamps.
 
-### Opzioni avanzate di visualizzazione
+### Advanced Display Options
 
-Controlla se mostrare la console quando è attivata senza comandi:
-
-```
-?managewp&setautoshow=on        # Mostra console quando attivata senza comandi
-?managewp&setautoshow=off       # Non mostrare console quando attivata senza comandi
-```
-
-## Struttura del codice
-
-Il file `index.php` è organizzato in sezioni logiche:
+Controls whether to show the console when activated without commands:
 
 ```
-1. Configurazione iniziale e definizioni
-2. Caricamento e gestione configurazione
-3. Funzioni di utilità
-4. Definizione comandi
-5. Parsing dei parametri
-6. Esecuzione comandi
-7. Verifica accesso e routing
-8. Funzioni di rendering pagine
+?managewp&setautoshow=on        # Show console when activated without commands
+?managewp&setautoshow=off       # Don't show console when activated without commands
 ```
 
-### Componenti principali
+## Code Structure
 
-- **$config_static**: Configurazione statica (password, IP superadmin, timeout)
-- **$config**: Configurazione dinamica (salvata su file JSON)
-- **$commands**: Definizione di tutti i comandi disponibili
-- **Funzioni di utilità**: Helper per la gestione di IP, durate, pattern URL
-- **Funzioni di rendering**: Generazione pagine HTML per diverse modalità
-- **Motore principale**: Logica di routing e controllo accessi
+The `index.php` file is organized in logical sections:
 
-## Come aggiungere nuovi comandi
+```
+1. Initial configuration and definitions
+2. Loading and managing configuration
+3. Utility functions
+4. Command definition
+5. Parameter parsing
+6. Command execution
+7. Access verification and routing
+8. Page rendering functions
+```
 
-Per aggiungere un nuovo comando:
+### Main Components
 
-1. **Aggiungi la definizione nell'array $commands**:
+- **$config_static**: Static configuration (password, superadmin IPs, timeout)
+- **$config**: Dynamic configuration (saved in JSON file)
+- **$commands**: Definition of all available commands
+- **Utility functions**: Helpers for managing IPs, durations, URL patterns
+- **Rendering functions**: HTML page generation for different modes
+- **Main engine**: Routing logic and access control
+
+## How to Add New Commands
+
+To add a new command:
+
+1. **Add the definition in the $commands array**:
 
 ```php
-'miocomando' => [
-    'aliases' => ['mc', 'mycommand'],
-    'description' => 'Descrizione del mio comando [parametri]',
+'mycommand' => [
+    'aliases' => ['mc', 'myalias'],
+    'description' => 'Description of my command [parameters]',
     'requires_value' => true,  // true/false/'optional'
     'visible_in_help' => true,
-    'menu_order' => 70  // Posizione nel menu help
+    'menu_order' => 70  // Position in help menu
 ],
 ```
 
-2. **Implementa la logica nel case switch per l'esecuzione comandi**:
+2. **Implement the logic in the case switch for command execution**:
 
 ```php
-case 'miocomando':
+case 'mycommand':
     if (empty($value)) {
-        $output .= "Errore: Valore richiesto per questo comando\n";
+        $output .= "Error: Value required for this command\n";
     } else {
-        // Logica del comando
-        $output .= "Mio comando eseguito con valore: $value\n";
-        $save_config_needed = true;  // Se modifica la configurazione
-        add_log_entry($config, "Mio comando eseguito: $value", $current_ip);
+        // Command logic
+        $output .= "My command executed with value: $value\n";
+        $save_config_needed = true;  // If it modifies the configuration
+        add_log_entry($config, "My command executed: $value", $current_ip);
     }
     break;
 ```
 
-3. **Se il comando gestisce nuovi dati**, aggiungi i campi necessari in `$config_static['default_config']`.
+3. **If the command manages new data**, add the necessary fields in `$config_static['default_config']`.
 
-## Personalizzazione
+## Customization
 
-### Template pagine
+### Page Templates
 
-Per personalizzare l'aspetto delle pagine di stato (manutenzione, chiuso, ecc.), modifica le funzioni corrispondenti:
+To customize the appearance of status pages (maintenance, closed, etc.), modify the corresponding functions:
 
 - `show_blocked_page()`
 - `show_closed_page()`
 - `show_maintenance_page()`
 - `show_message_page()`
 
-Oppure implementa un template unificato come discusso in precedenza.
+Or implement a unified template as previously discussed.
 
-### Stile console
+### Console Style
 
-Per modificare l'aspetto della console:
+To change the console appearance:
 
-1. Localizza la funzione `show_console()`
-2. Modifica il CSS interno per personalizzare colori, font, dimensioni
+1. Locate the `show_console()` function
+2. Modify the internal CSS to customize colors, fonts, sizes
 
-### Timeout e limiti
+### Timeouts and Limits
 
-Questi valori sono configurabili nell'array `$config_static`:
+These values are configurable in the `$config_static` array:
 
-- `operator_timeout`: Durata sessione operatore in secondi
-- `max_visitors`: Numero massimo di visitatori registrati
-- `command_history_size`: Dimensione della cronologia comandi
-- `log_max_entries`: Numero massimo di eventi di log
+- `operator_timeout`: Operator session duration in seconds
+- `max_visitors`: Maximum number of registered visitors
+- `command_history_size`: Size of the command history
+- `log_max_entries`: Maximum number of log events
 
-## Risoluzione problemi
+## Troubleshooting
 
-### Accesso di emergenza
+### Emergency Access
 
-Se non riesci ad accedere:
+If you can't access:
 
-1. **IP superadmin**: Accedi da un IP elencato in `$superadmin_ips`
-2. **Password superadmin**: Usa `?managewp=superadmin_password` per accedere
+1. **Superadmin IP**: Access from an IP listed in `$superadmin_ips`
+2. **Superadmin password**: Use `?managewp=superadmin_password` to access
 
-### Ripristino configurazione
+### Configuration Reset
 
-Se la configurazione è danneggiata:
+If the configuration is corrupted:
 
-1. Elimina il file di configurazione in `wp-content/pin-access-manager-config.json`
-2. Il sistema creerà una nuova configurazione predefinita
-3. Oppure usa `?managewp&reset` per ripristinare le impostazioni predefinite
+1. Delete the configuration file in `wp-content/pin-access-manager-config.json`
+2. The system will create a new default configuration
+3. Or use `?managewp&reset` to restore default settings
 
 ### Debug
 
-Per risolvere problemi:
+To solve problems:
 
-1. Verifica la console per messaggi di errore
-2. Controlla i permessi dei file per assicurarti che PHP possa scrivere nella cartella `wp-content/`
-3. Attiva il logging con `?managewp&log=on` per tracciare le azioni
+1. Check the console for error messages
+2. Check file permissions to ensure PHP can write to the `wp-content/` folder
+3. Enable logging with `?managewp&log=on` to track actions
 
-## Considerazioni sulla sicurezza
+## Security Considerations
 
-### Password
+### Passwords
 
-- Cambia sempre la password superadmin predefinita
-- Utilizza una password forte per l'accesso dinamico
-- Considera l'uso di HTTPS per proteggere le credenziali
+- Always change the default superadmin password
+- Use a strong password for dynamic access
+- Consider using HTTPS to protect credentials
 
-### IP superadmin
+### Superadmin IPs
 
-- Usa indirizzi IP statici quando possibile
-- Verifica regolarmente la lista degli IP superadmin
-- Limita l'accesso solo agli IP affidabili
+- Use static IP addresses when possible
+- Regularly verify the list of superadmin IPs
+- Limit access only to trusted IPs
 
 ### Blacklist
 
-- Considera l'aggiunta di IP che tentano accessi non autorizzati
-- Abilita il logging per tenere traccia dei tentativi di accesso
+- Consider adding IPs that attempt unauthorized access
+- Enable logging to keep track of access attempts
 
-### Accesso backend
+### Backend Access
 
-- Valuta la separazione degli accessi frontend e backend
-- Usa `openback` durante la manutenzione per consentire l'amministrazione
+- Consider separating frontend and backend access
+- Use `openback` during maintenance to allow administration
 
-### File di configurazione
+### Configuration File
 
-- Verifica che il file di configurazione non sia accessibile pubblicamente
-- Esegui backup regolari della configurazione
+- Verify that the configuration file is not publicly accessible
+- Consider adding server-level protections (e.g., .htaccess rules) to prevent direct access to the JSON file
+- Perform regular backups of the configuration
+- Check file permissions to ensure only the web server can read and write to it
+- Consider encrypting sensitive data in the configuration file for additional security
+
+## Conclusion
+
+Pin Access Manager provides a robust, flexible solution for controlling access to your WordPress site. Whether you need to temporarily close your site for maintenance, protect specific areas, or manage access based on IP addresses, this tool offers a comprehensive set of features with minimal overhead.
+
+The modular design makes it easy to extend with new commands and functionalities, while the console interface provides a convenient way to manage your site's accessibility. By following the security considerations outlined in this documentation, you can ensure that the tool itself remains secure while protecting your WordPress installation.
+
+For more advanced users, the tool can be further customized and extended to meet specific requirements, making it a valuable addition to any WordPress administrator's toolkit.
+
+### Support and Contributions
+
+For support issues or to contribute improvements to Pin Access Manager, please reach out to the developer or consider submitting pull requests if the code is hosted in a public repository.
+
+Remember to always keep the tool updated with the latest security best practices to ensure your WordPress site remains protected.
+
+---
+
+*This documentation last updated: May 2025*
