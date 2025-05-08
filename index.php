@@ -1,6 +1,7 @@
 <?php
 /**
  * WordPress Access Controller
+ * Github repository: WP-Access-Control-type-G
  * Rif: https://claude.ai/chat/90553400-b193-4108-8b80-bc720f59762d
  * 20250508
  * Questo script funge da gatekeeper per WordPress, controllando l'accesso al sito
